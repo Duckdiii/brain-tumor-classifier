@@ -12,13 +12,13 @@ import argparse
 
 import torch
 
-from brain_tumor.config import Paths, yolo_dataset_yaml
+from brain_tumor.config import Paths
 from brain_tumor.constants import CLASS_NAMES, NUM_CLASSES
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", choices=["cnn", "vit", "yolov8", "yolov10"], required=True)
+    parser.add_argument("--model", choices=["cnn", "vit", "yolov8", "yolov11"], required=True)
     parser.add_argument("--split", choices=["val", "test"], default="val")
     parser.add_argument("--paths-config", default="paths.yaml")
     args = parser.parse_args()
@@ -36,9 +36,9 @@ def main() -> None:
         model = GeneralCNN(num_classes=NUM_CLASSES)
         model.load_state_dict(torch.load(paths.cnn_weights, map_location=device))
         model.to(device)
-        split_dir = paths.cnn_val if args.split == "val" else paths.cnn_test
+        split_dir = paths.classification_val if args.split == "val" else paths.classification_test
         _, precision = evaluate(
-            model, split_dir, paths.cnn_train, CLASS_NAMES, device=device, progress_callback=progress
+            model, split_dir, paths.classification_train, CLASS_NAMES, device=device, progress_callback=progress
         )
         print(f"CNN {args.split} precision: {precision:.2f}%")
 
@@ -47,17 +47,25 @@ def main() -> None:
         from brain_tumor.models.vit import load_vit_checkpoint
 
         model = load_vit_checkpoint(paths.vit_weights, num_classes=NUM_CLASSES, device=device)
-        split_dir = paths.vit_val if args.split == "val" else paths.vit_test
-        precision = evaluate(model, split_dir, paths.vit_train, device=device, progress_callback=progress)
+        split_dir = paths.classification_val if args.split == "val" else paths.classification_test
+        precision = evaluate(model, split_dir, paths.classification_train, device=device, progress_callback=progress)
         print(f"ViT {args.split} precision: {precision:.2f}%")
 
     else:
-        from brain_tumor.evaluation.evaluate_yolo import evaluate_yolo
+        from brain_tumor.evaluation.evaluate_yolo import evaluate_yolo, test_yolo
 
-        weights = paths.yolov8_weights if args.model == "yolov8" else paths.yolov10_weights
-        project = paths.yolov8_runs if args.model == "yolov8" else paths.yolov10_runs
-        result = evaluate_yolo(weights, yolo_dataset_yaml(), project, device=0 if device == "cuda" else "cpu")
-        print(result)
+        weights = paths.yolov8_weights if args.model == "yolov8" else paths.yolo11_weights
+        project = paths.yolov8_runs if args.model == "yolov8" else paths.yolo11_runs
+        if args.split == "val":
+            result = evaluate_yolo(
+                weights, paths.classification_train.parent, project, device=0 if device == "cuda" else "cpu"
+            )
+            print(result)
+        else:
+            _, accuracy = test_yolo(
+                weights, paths.classification_test, device=0 if device == "cuda" else "cpu", progress_callback=progress
+            )
+            print(f"{args.model} test accuracy: {accuracy:.2f}%")
 
 
 if __name__ == "__main__":

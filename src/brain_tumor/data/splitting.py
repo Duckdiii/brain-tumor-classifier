@@ -1,17 +1,15 @@
-"""Train/val/test splitting for the raw YOLO-format dataset.
+"""Train/valid/test splitting for the raw YOLO-labeled dataset.
 
 The raw dataset ships as ``images/*.jpg`` + YOLO ``labels/*.txt`` pairs (one
-class id per file, since each image contains a single tumor region). Two
-downstream layouts are derived from it:
+class id per file, since each image contains a single tumor region). This
+module derives the classifier layout (``<split>/<class_name>/*.jpg``,
+``torchvision.datasets.ImageFolder`` compatible / Ultralytics classify
+compatible) shared by all four models (CNN, ViT, YOLOv8, YOLOv11).
 
-- Classifier layout (CNN / ViT): ``<split>/<class_name>/*.jpg``
-  (``torchvision.datasets.ImageFolder`` compatible).
-- Detector layout (YOLOv8 / YOLOv10): ``<split>/images`` + ``<split>/labels``.
-
-This mirrors ``split_dataset_CNN`` / ``split_dataset_ViT`` / ``split_dataset_Yolo``
-from the original ``Library.py``, deduplicated into one classifier-layout
-implementation and stripped of the Streamlit/UI coupling. Progress is
-reported through an optional callback instead of ``st.progress``.
+This mirrors ``split_dataset_CNN`` / ``split_dataset_ViT`` from the original
+``Library.py``, deduplicated into one implementation and stripped of the
+Streamlit/UI coupling. Progress is reported through an optional callback
+instead of ``st.progress``.
 """
 
 from __future__ import annotations
@@ -58,7 +56,7 @@ def split_classification_dataset(
     if round(train_ratio + val_ratio + test_ratio) != 100:
         raise ValueError("train_ratio + val_ratio + test_ratio must sum to 100")
 
-    for split in ("train", "val", "test"):
+    for split in ("train", "valid", "test"):
         for class_name in class_names.values():
             (output_dir / split / class_name).mkdir(parents=True, exist_ok=True)
 
@@ -72,7 +70,7 @@ def split_classification_dataset(
 
     splits = {
         "train": label_files[:train_count],
-        "val": label_files[train_count : train_count + val_count],
+        "valid": label_files[train_count : train_count + val_count],
         "test": label_files[train_count + val_count :],
     }
 
@@ -98,61 +96,6 @@ def split_classification_dataset(
             copied += 1
             _report(progress_callback, percent, f"Dang chia {split}... {percent}%")
         counts[split] = copied
-
-    return counts
-
-
-def split_detection_dataset(
-    images_dir: Path | str,
-    labels_dir: Path | str,
-    output_dir: Path | str,
-    train_ratio: float,
-    val_ratio: float,
-    test_ratio: float,
-    seed: int = 42,
-    progress_callback: ProgressCallback = None,
-) -> dict[str, int]:
-    """Split the raw dataset into a YOLO ``images/`` + ``labels/`` layout.
-
-    Ratios are expressed as percentages (0-100) and must sum to 100.
-    Returns the number of images copied per split.
-    """
-    images_dir, labels_dir, output_dir = Path(images_dir), Path(labels_dir), Path(output_dir)
-    if round(train_ratio + val_ratio + test_ratio) != 100:
-        raise ValueError("train_ratio + val_ratio + test_ratio must sum to 100")
-
-    image_files = [f for f in images_dir.iterdir() if f.suffix.lower() in IMAGE_EXTENSIONS]
-    rng = random.Random(seed)
-    rng.shuffle(image_files)
-
-    total = len(image_files)
-    train_count = int(total * train_ratio / 100)
-    val_count = int(total * val_ratio / 100)
-
-    splits = {
-        "train": image_files[:train_count],
-        "valid": image_files[train_count : train_count + val_count],
-        "test": image_files[train_count + val_count :],
-    }
-
-    for split in splits:
-        (output_dir / split / "images").mkdir(parents=True, exist_ok=True)
-        (output_dir / split / "labels").mkdir(parents=True, exist_ok=True)
-
-    processed = 0
-    total_to_process = total
-    counts: dict[str, int] = {}
-
-    for split, files in splits.items():
-        for image_path in files:
-            shutil.copy(image_path, output_dir / split / "images" / image_path.name)
-            label_path = labels_dir / (image_path.stem + ".txt")
-            if label_path.exists():
-                shutil.copy(label_path, output_dir / split / "labels" / label_path.name)
-            processed += 1
-            percent = int(processed / total_to_process * 100)
-            _report(progress_callback, percent, f"Dang chia dataset... {percent}%")
-        counts[split] = len(files)
 
     return counts
 

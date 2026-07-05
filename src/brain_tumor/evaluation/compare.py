@@ -13,7 +13,7 @@ from typing import Callable, Optional
 import pandas as pd
 import torch
 
-from brain_tumor.config import Paths, yolo_dataset_yaml
+from brain_tumor.config import Paths
 from brain_tumor.constants import CLASS_NAMES
 from brain_tumor.evaluation.evaluate_cnn import evaluate as evaluate_cnn
 from brain_tumor.evaluation.evaluate_vit import evaluate as evaluate_vit
@@ -34,7 +34,7 @@ def compare_models(
     device: str | torch.device = "cpu",
     progress_callback: ProgressCallback = None,
 ) -> pd.DataFrame:
-    """Evaluate CNN, ViT, YOLOv8 and YOLOv10 on their respective val splits."""
+    """Evaluate CNN, ViT, YOLOv8 and YOLOv11 on their respective val splits."""
     _report(progress_callback, 0, "Dang tai mo hinh CNN...")
     cnn_model = GeneralCNN(num_classes=len(CLASS_NAMES))
     cnn_model.load_state_dict(torch.load(paths.cnn_weights, map_location=device))
@@ -42,7 +42,7 @@ def compare_models(
 
     _report(progress_callback, 15, "Dang danh gia CNN...")
     _, cnn_precision = evaluate_cnn(
-        cnn_model, paths.cnn_val, paths.cnn_train, CLASS_NAMES, device=device
+        cnn_model, paths.classification_val, paths.classification_train, CLASS_NAMES, device=device
     )
 
     _report(progress_callback, 30, "Dang tai ViT...")
@@ -51,16 +51,18 @@ def compare_models(
     vit_model.to(device)
 
     _report(progress_callback, 45, "Dang danh gia ViT...")
-    vit_precision = evaluate_vit(vit_model, paths.vit_val, paths.vit_train, device=device)
+    vit_precision = evaluate_vit(
+        vit_model, paths.classification_val, paths.classification_train, device=device
+    )
 
     _report(progress_callback, 60, "Dang danh gia YOLOv8...")
     yolov8_result = evaluate_yolo(
-        paths.yolov8_weights, yolo_dataset_yaml(), paths.yolov8_runs, device=device
+        paths.yolov8_weights, paths.classification_train.parent, paths.yolov8_runs, device=device
     )
 
-    _report(progress_callback, 75, "Dang danh gia YOLOv10...")
-    yolov10_result = evaluate_yolo(
-        paths.yolov10_weights, yolo_dataset_yaml(), paths.yolov10_runs, device=device
+    _report(progress_callback, 75, "Dang danh gia YOLOv11...")
+    yolo11_result = evaluate_yolo(
+        paths.yolo11_weights, paths.classification_train.parent, paths.yolo11_runs, device=device
     )
 
     _report(progress_callback, 100, "Hoan tat so sanh.")
@@ -69,6 +71,6 @@ def compare_models(
             {"model_name": "CNN", "precision": cnn_precision / 100},
             {"model_name": "ViT", "precision": vit_precision / 100},
             {"model_name": "YOLOv8", "precision": yolov8_result["precision"]},
-            {"model_name": "YOLOv10", "precision": yolov10_result["precision"]},
+            {"model_name": "YOLOv11", "precision": yolo11_result["precision"]},
         ]
     )

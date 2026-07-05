@@ -9,25 +9,17 @@ raw:
   labels: data/raw/labels
 
 processed:
-  cnn:
-    train: data/processed/cnn/train
-    val: data/processed/cnn/val
-    test: data/processed/cnn/test
-  vit:
-    train: data/processed/vit/train
-    val: data/processed/vit/val
-    test: data/processed/vit/test
-  yolo:
-    train: data/processed/yolo/train
-    val: data/processed/yolo/valid
-    test: data/processed/yolo/test
+  classification:
+    train: data/processed/train
+    val: data/processed/valid
+    test: data/processed/test
 
 weights:
-  cnn: weights/cnn/cnn_checkpoint.pth
-  vit: weights/vit/vit_version1.pth
+  cnn: weights/cnn/best_model.pth
+  vit: weights/vit/best_model.pth
   yolov8: weights/yolov8/best.pt
-  yolov10: weights/yolov10/best.pt
+  yolo11: weights/yolov11/best.pt
 
 runs:
   yolov8: weights/yolov8/runs
-  yolov10: weights/yolov10/runs
+  yolo11: weights/yolov11/runs

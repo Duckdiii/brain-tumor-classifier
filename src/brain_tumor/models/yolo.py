@@ -1,8 +1,8 @@
-"""Thin wrappers around ``ultralytics.YOLO`` for the detection models.
+"""Thin wrappers around ``ultralytics.YOLO`` for the classifier models.
 
-YOLOv8 and YOLOv10 share the exact same Ultralytics API surface; only the
-base checkpoint (``yolov8m.pt`` vs ``yolov10m.pt``) differs, so both are
-served by the same loader.
+YOLOv8 and YOLOv11 share the exact same Ultralytics API surface; only the
+base checkpoint (``yolov8m-cls.pt`` vs ``yolo11m-cls.pt``) differs, so both
+are served by the same loader.
 """
 
 from __future__ import annotations

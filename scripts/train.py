@@ -5,7 +5,7 @@ Usage:
     python scripts/train.py --model cnn
     python scripts/train.py --model vit
     python scripts/train.py --model yolov8
-    python scripts/train.py --model yolov10
+    python scripts/train.py --model yolov11
 """
 
 from __future__ import annotations
@@ -14,13 +14,13 @@ import argparse
 
 import torch
 
-from brain_tumor.config import Paths, load_yaml, yolo_dataset_yaml
+from brain_tumor.config import Paths, load_yaml
 from brain_tumor.constants import NUM_CLASSES
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", choices=["cnn", "vit", "yolov8", "yolov10"], required=True)
+    parser.add_argument("--model", choices=["cnn", "vit", "yolov8", "yolov11"], required=True)
     parser.add_argument("--paths-config", default="paths.yaml")
     args = parser.parse_args()
 
@@ -35,8 +35,8 @@ def main() -> None:
 
         cfg = load_yaml("cnn.yaml")
         train(
-            paths.cnn_train,
-            paths.cnn_val,
+            paths.classification_train,
+            paths.classification_val,
             paths.cnn_weights,
             num_classes=NUM_CLASSES,
             image_size=cfg["image_size"],
@@ -52,8 +52,8 @@ def main() -> None:
 
         cfg = load_yaml("vit.yaml")
         train(
-            paths.vit_train,
-            paths.vit_val,
+            paths.classification_train,
+            paths.classification_val,
             paths.vit_weights,
             num_classes=NUM_CLASSES,
             model_name=cfg["model"],
@@ -71,8 +71,8 @@ def main() -> None:
         from brain_tumor.training.train_yolo import train
 
         cfg = load_yaml(f"{args.model}.yaml")
-        runs = paths.yolov8_runs if args.model == "yolov8" else paths.yolov10_runs
-        weights_out = paths.yolov8_weights if args.model == "yolov8" else paths.yolov10_weights
+        runs = paths.yolov8_runs if args.model == "yolov8" else paths.yolo11_runs
+        weights_out = paths.yolov8_weights if args.model == "yolov8" else paths.yolo11_weights
         extra = {
             k: v
             for k, v in cfg.items()
@@ -80,7 +80,7 @@ def main() -> None:
         }
         train(
             base_model=cfg["model"],
-            data_yaml=yolo_dataset_yaml(),
+            data_dir=paths.classification_train.parent,
             project=runs,
             weights_out=weights_out,
             epochs=cfg["epochs"],

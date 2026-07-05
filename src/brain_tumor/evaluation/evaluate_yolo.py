@@ -1,9 +1,10 @@
-"""Evaluation / inference helpers for YOLOv8 and YOLOv10 detectors.
+"""Evaluation / inference helpers for the YOLOv8 and YOLOv11 classifiers.
 
-Consolidates ``evaluate_yolov8``/``evaluate_yolov10`` and
-``test_yolov8_model_predict``/``test_yolov10_model_predict`` from the
-original ``Library.py`` into version-agnostic functions, since both models
-share the same Ultralytics API.
+Consolidates ``evaluate_yolov8``/``evaluate_yolov10`` from the original
+``Library.py`` into version-agnostic functions, since both models share the
+same Ultralytics API. ``evaluate_yolo``/``test_yolo`` mirror the shape of
+``evaluate_cnn``/``evaluate_vit`` so all four models can be compared with the
+same "precision" metric.
 """
 
 from __future__ import annotations
@@ -33,74 +34,74 @@ def _scalar(value) -> float:
 
 def evaluate_yolo(
     weights_path: Path | str,
-    data_yaml: Path | str,
+    data_dir: Path | str,
     project: Path | str,
-    imgsz: int = 640,
+    imgsz: int = 224,
     batch: int = 32,
-    conf: float = 0.5,
-    iou: float = 0.5,
     device: int | str = "cpu",
 ) -> dict:
-    """Run validation and return mAP50 / mAP50-95 / precision / recall."""
+    """Run validation and return top1/top5 accuracy (``precision`` = top1)."""
     model = load_yolo(weights_path)
     results = model.val(
-        data=str(data_yaml),
+        data=str(data_dir),
         imgsz=imgsz,
         batch=batch,
         device=device,
-        conf=conf,
-        iou=iou,
-        plots=True,
-        save_json=True,
         split="val",
         verbose=True,
-        save_txt=True,
-        save_conf=True,
         name="result_val",
         project=str(project),
     )
+    top1 = _scalar(results.top1)
     return {
         "model_name": os.path.basename(str(weights_path)),
-        "mAP50": _scalar(results.box.map50),
-        "mAP50-95": _scalar(results.box.map),
-        "precision": _scalar(results.box.p),
-        "recall": _scalar(results.box.r),
+        "top1": top1,
+        "top5": _scalar(results.top5),
+        "precision": top1,
     }
 
 
-def predict_on_dir(
+def test_yolo(
     weights_path: Path | str,
-    images_dir: Path | str,
-    project: Path | str,
-    imgsz: int = 640,
-    conf: float = 0.5,
+    test_dir: Path | str,
+    device: int | str = "cpu",
     progress_callback: ProgressCallback = None,
-) -> list[str]:
-    """Run detection over every image in ``images_dir`` and save annotated outputs.
+) -> tuple[list[dict], float]:
+    """Per-image test loop over a class-subfoldered directory.
 
-    Returns the list of annotated image paths written under
-    ``<project>/result_test``.
+    Returns ``(per_image_results, accuracy_percent)`` in the same shape as
+    ``evaluate_cnn.test`` / ``evaluate_vit.test``.
     """
-    images_dir = Path(images_dir)
+    test_dir = Path(test_dir)
     model = load_yolo(weights_path)
-    output_dir = Path(project) / "result_test"
-    output_dir.mkdir(parents=True, exist_ok=True)
 
-    image_files = [f for f in images_dir.iterdir() if f.suffix.lower() in IMAGE_EXTENSIONS]
+    image_files = [
+        (class_dir.name, image_path)
+        for class_dir in sorted(test_dir.iterdir())
+        if class_dir.is_dir()
+        for image_path in sorted(class_dir.iterdir())
+        if image_path.suffix.lower() in IMAGE_EXTENSIONS
+    ]
+
+    results: list[dict] = []
+    correct = 0
     total = len(image_files)
 
-    for idx, image_path in enumerate(image_files):
-        model.predict(
-            source=str(image_path),
-            imgsz=imgsz,
-            conf=conf,
-            save=True,
-            project=str(project),
-            name="result_test",
-            exist_ok=True,
-            verbose=False,
+    for idx, (true_label, image_path) in enumerate(image_files):
+        prediction = model.predict(source=str(image_path), device=device, verbose=False)[0]
+        predicted_label = prediction.names[int(prediction.probs.top1)]
+        is_correct = predicted_label == true_label
+        correct += is_correct
+        results.append(
+            {
+                "filename": str(image_path),
+                "true_label": true_label,
+                "predicted_label": predicted_label,
+                "is_correct": is_correct,
+            }
         )
         percent = int((idx + 1) / total * 100) if total else 100
-        _report(progress_callback, percent, f"Dang du doan... {percent}%")
+        _report(progress_callback, percent, f"Dang test... {percent}%")
 
-    return [str(p) for p in output_dir.rglob("*") if p.suffix.lower() in (*IMAGE_EXTENSIONS, ".bmp")]
+    accuracy = 100 * correct / total if total else 0.0
+    return results, accuracy

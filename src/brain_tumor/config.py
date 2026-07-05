@@ -42,21 +42,15 @@ class Paths:
 
     raw_images: Path
     raw_labels: Path
-    cnn_train: Path
-    cnn_val: Path
-    cnn_test: Path
-    vit_train: Path
-    vit_val: Path
-    vit_test: Path
-    yolo_train: Path
-    yolo_val: Path
-    yolo_test: Path
+    classification_train: Path
+    classification_val: Path
+    classification_test: Path
     cnn_weights: Path
     vit_weights: Path
     yolov8_weights: Path
-    yolov10_weights: Path
+    yolo11_weights: Path
     yolov8_runs: Path
-    yolov10_runs: Path
+    yolo11_runs: Path
 
     @classmethod
     def load(cls, config_path: str | Path = "paths.yaml") -> "Paths":
@@ -73,24 +67,13 @@ class Paths:
         return cls(
             raw_images=data(raw["raw"]["images"]),
             raw_labels=data(raw["raw"]["labels"]),
-            cnn_train=data(raw["processed"]["cnn"]["train"]),
-            cnn_val=data(raw["processed"]["cnn"]["val"]),
-            cnn_test=data(raw["processed"]["cnn"]["test"]),
-            vit_train=data(raw["processed"]["vit"]["train"]),
-            vit_val=data(raw["processed"]["vit"]["val"]),
-            vit_test=data(raw["processed"]["vit"]["test"]),
-            yolo_train=data(raw["processed"]["yolo"]["train"]),
-            yolo_val=data(raw["processed"]["yolo"]["val"]),
-            yolo_test=data(raw["processed"]["yolo"]["test"]),
+            classification_train=data(raw["processed"]["classification"]["train"]),
+            classification_val=data(raw["processed"]["classification"]["val"]),
+            classification_test=data(raw["processed"]["classification"]["test"]),
             cnn_weights=weights(raw["weights"]["cnn"]),
             vit_weights=weights(raw["weights"]["vit"]),
             yolov8_weights=weights(raw["weights"]["yolov8"]),
-            yolov10_weights=weights(raw["weights"]["yolov10"]),
+            yolo11_weights=weights(raw["weights"]["yolo11"]),
             yolov8_runs=weights(raw["runs"]["yolov8"]),
-            yolov10_runs=weights(raw["runs"]["yolov10"]),
+            yolo11_runs=weights(raw["runs"]["yolo11"]),
         )
-
-
-def yolo_dataset_yaml() -> Path:
-    """Path to the Ultralytics dataset descriptor shared by YOLOv8/v10."""
-    return CONFIGS_DIR / "yolo_dataset.yaml"

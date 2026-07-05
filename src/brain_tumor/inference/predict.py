@@ -1,4 +1,4 @@
-"""Single-image inference for the classifier and detector models.
+"""Single-image inference for the four classifier models (CNN/ViT/YOLOv8/YOLOv11).
 
 The original ``GUI_version2.py`` had an "upload image" panel that only ever
 displayed a hardcoded example result (``Nhan du doan: [Vi du: Cho]``); the
@@ -43,7 +43,15 @@ def predict_image_classifier(
     return class_names[predicted_idx.item()], confidence.item()
 
 
-def predict_image_yolo(weights_path: Path | str, image: Path | str | Image.Image, conf: float = 0.5):
-    """Run a YOLOv8/YOLOv10 detector on a single image and return raw results."""
+def predict_image_yolo(
+    weights_path: Path | str, image: Path | str | Image.Image
+) -> tuple[str, float]:
+    """Run a YOLOv8/YOLOv11 classifier on a single image.
+
+    Returns ``(predicted_class_name, confidence)``, matching
+    ``predict_image_classifier``.
+    """
     model = load_yolo(weights_path)
-    return model.predict(source=image, conf=conf, verbose=False)
+    result = model.predict(source=image, verbose=False)[0]
+    predicted_idx = int(result.probs.top1)
+    return result.names[predicted_idx], float(result.probs.top1conf)
