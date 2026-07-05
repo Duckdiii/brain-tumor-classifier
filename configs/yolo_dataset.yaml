@@ -1,0 +1,13 @@
+# Ultralytics dataset descriptor shared by YOLOv8 and YOLOv10.
+# `path` is resolved relative to this file's location by ultralytics.
+path: ../data/processed/yolo
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 4
+names:
+  0: Glioma
+  1: Meningioma
+  2: No Tumor
+  3: Pituitary

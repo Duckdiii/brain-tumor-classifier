@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brain-tumor"
+version = "0.1.0"
+description = "Brain tumor classification with CNN, ViT, YOLOv8 and YOLOv10"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,33 @@
+# Central path configuration.
+# All paths are relative to the project root and can be overridden with the
+# BRAIN_TUMOR_DATA_ROOT / BRAIN_TUMOR_WEIGHTS_ROOT environment variables
+# (see src/brain_tumor/config.py). This replaces the hardcoded
+# "D:\\Dataset\\..." / "/content/..." paths used in the original notebooks.
+
+raw:
+  images: data/raw/images
+  labels: data/raw/labels
+
+processed:
+  cnn:
+    train: data/processed/cnn/train
+    val: data/processed/cnn/val
+    test: data/processed/cnn/test
+  vit:
+    train: data/processed/vit/train
+    val: data/processed/vit/val
+    test: data/processed/vit/test
+  yolo:
+    train: data/processed/yolo/train
+    val: data/processed/yolo/valid
+    test: data/processed/yolo/test
+
+weights:
+  cnn: weights/cnn/cnn_checkpoint.pth
+  vit: weights/vit/vit_version1.pth
+  yolov8: weights/yolov8/best.pt
+  yolov10: weights/yolov10/best.pt
+
+runs:
+  yolov8: weights/yolov8/runs
+  yolov10: weights/yolov10/runs

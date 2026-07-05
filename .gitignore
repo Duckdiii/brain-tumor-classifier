@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Large, machine-specific assets: keep the folder structure, not the content.
+/data/raw/images/*
+/data/raw/labels/*
+/data/processed/**
+/weights/**
+!/data/raw/images/.gitkeep
+!/data/raw/labels/.gitkeep
+!/data/processed/**/.gitkeep
+!/weights/**/.gitkeep
+
+# Ultralytics / training run artifacts
+runs/
+*.pt
+*.pth
+
+.streamlit/
+.ipynb_checkpoints/
