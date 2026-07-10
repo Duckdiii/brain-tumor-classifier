@@ -1,184 +1,145 @@
 # Brain Tumor Classification
 
-Phan loai u nao tren anh MRI thanh 4 lop: **Glioma, Meningioma, No Tumor,
-Pituitary**, so sanh 4 mo hinh hoc sau:
+Classification of brain tumors on MRI images into 4 classes: **Glioma, Meningioma, No Tumor, Pituitary**, comparing the following 4 deep learning models:
 
-| Mo hinh | Loai | Thu vien |
+| Model | Type | Library |
 |---|---|---|
-| CNN (`GeneralCNN`) | Classifier tu xay dung | PyTorch |
-| Vision Transformer (`vit_base_patch16_224`) | Classifier fine-tune | timm |
-| YOLOv8 (`yolov8m-cls`) | Classifier fine-tune | Ultralytics |
-| YOLOv11 (`yolo11m-cls`) | Classifier fine-tune | Ultralytics |
+| CNN (`GeneralCNN`) | Custom-built classifier | PyTorch |
+| Vision Transformer (`vit_base_patch16_224`) | Fine-tuned classifier | timm |
+| YOLOv8 (`yolov8m-cls`) | Fine-tuned classifier | Ultralytics |
+| YOLOv11 (`yolo11m-cls`) | Fine-tuned classifier | Ultralytics |
 
-Ca 4 mo hinh dung chung 1 bo dataset ImageFolder (`data/processed/{train,valid,test}/<lop>`).
+All 4 models share the same ImageFolder dataset format (`data/processed/{train,valid,test}/<class>`).
 
-Day la ban xay dung lai co cau truc cua du an NCKH goc (truoc day nam o
-`D:\Data\NCKH\BrainTumor`, gom 3 ban Google Drive export voi code, config va
-weight/dataset zip nam lan lon voi nhau). Weight (~20MB-1.2GB moi file) va
-dataset goc (~1.2GB) **khong duoc sao chep vao day** — chi cau truc thu muc va
-code duoc xay dung lai; xem [Du lieu va trong so mo hinh](#du-lieu-va-trong-so-mo-hinh).
+This is a restructured and rebuilt version of the original scientific research (NCKH) project (previously located at `D:\Data\NCKH\BrainTumor`, which consisted of 3 Google Drive exports with code, config, and weight/dataset zip files mixed together). Weights (~20MB-1.2GB per file) and the original dataset (~1.2GB) **are not copied here** — only the folder structure and code have been rebuilt; see [Data and Model Weights](#data-and-model-weights).
 
-## Ket qua nghien cuu
+## Research Results
 
-Ket qua duoi day trich tu bao cao nghien cuu khoa hoc sinh vien **"Phan loai
-hinh anh bang mo hinh hoc sau"** (ma so SV2025-176, Khoa Dao Tao Quoc Te —
-Truong Dai hoc Su pham Ky thuat TP.HCM, 10/2025), la co so hoc thuat cua
-project nay.
+The results below are extracted from the student scientific research report **"Image Classification using Deep Learning Models"** (Project ID: SV2025-176, Faculty of International Education — Ho Chi Minh City University of Technology and Education, 10/2025), which serves as the academic foundation of this project.
 
-**Du lieu thuc nghiem:** 7,023 anh MRI nao tu Kaggle (tac gia Masoud
-Nickparvar) — Glioma 1,621 / Meningioma 1,645 / Pituitary 1,757 / No Tumor
-2,000 anh. Chia Train 90% – Test 10%, Validation = 10% cua tap Train.
+**Experimental Data:** 7,023 brain MRI images from Kaggle (authored by Masoud Nickparvar) — Glioma 1,621 / Meningioma 1,645 / Pituitary 1,757 / No Tumor 2,000 images. Split: Train 90% – Test 10%, Validation = 10% of the Train set.
 
-**So sanh hieu suat 4 mo hinh tren tap Validation:**
+**Performance comparison of the 4 models on the Validation set:**
 
-| Mo hinh | Accuracy | Precision | Recall | F1 Score |
+| Model | Accuracy | Precision | Recall | F1 Score |
 |---|---|---|---|---|
 | CNN (baseline) | 89.58% | 89.18% | 89.15% | 89.11% |
 | Vision Transformer | 98.14% | 98.10% | 98.09% | 98.09% |
 | **YOLOv8** | **99.57%** | **99.60%** | **99.55%** | **99.57%** |
 | YOLOv11 | 96.71% | 97.36% | 96.63% | 96.87% |
 
-**Toc do suy luan va kich thuoc mo hinh:**
+**Inference speed and model size:**
 
-| Mo hinh | Thoi gian huan luyen | Thoi gian danh gia / anh | Kich thuoc |
+| Model | Training Time | Evaluation Time / Image | Size |
 |---|---|---|---|
-| CNN | ~222 phut | ~0.16s | ~800 MB |
-| ViT | ~220 phut | ~0.02s (nhanh nhat) | ~327 MB |
-| YOLOv8 | ~174 phut | ~0.27s | ~30.2 MB |
-| YOLOv11 | ~247 phut | ~0.74s | ~19.9 MB (nho nhat) |
+| CNN | ~222 minutes | ~0.16s | ~800 MB |
+| ViT | ~220 minutes | ~0.02s (fastest) | ~327 MB |
+| YOLOv8 | ~174 minutes | ~0.27s | ~30.2 MB |
+| YOLOv11 | ~247 minutes | ~0.74s | ~19.9 MB (smallest) |
 
-**Nhan xet:**
+**Observations:**
 
-- **YOLOv8** la mo hinh tot nhat tong the — tat ca chi so deu ~99.5-99.6%,
-  gan nhu hoan hao tren ca 4 lop u (Confusion Matrix chi lech 1-2 mau moi
-  lop), toc do suy luan nhanh va kich thuoc nho gon. Day la mo hinh duoc de
-  xuat de trien khai thuc te ho tro chan doan.
-- **ViT** xep thu 2 va on dinh nho co che self-attention toan cuc, dong thoi
-  co toc do suy luan nhanh nhat trong 4 mo hinh (~0.02s/anh).
-- **YOLOv11** nho gon nhat (~19.9 MB) nhung van con nham lan dang ke o lop
-  Notumor (Precision chi 90.09%), can cai thien them.
-- **CNN** dong vai tro mo hinh co so (baseline) de doi chieu, yeu nhat o lop
-  Meningioma (F1 chi 80.25%) do cac loai u co dac trung hinh anh tuong dong.
+- **YOLOv8** is the overall best model — all metrics are around 99.5-99.6%, nearly perfect across all 4 tumor classes (Confusion Matrix only misclassified 1-2 samples per class), fast inference speed, and compact size. This model is recommended for practical deployment in diagnostic support.
+- **ViT** ranks second and remains stable thanks to the global self-attention mechanism, while also achieving the fastest inference speed among the 4 models (~0.02s/image).
+- **YOLOv11** is the most compact (~19.9 MB) but still has significant confusion in the No Tumor class (Precision of only 90.09%), requiring further improvement.
+- **CNN** serves as the baseline model for comparison, performing weakest on the Meningioma class (F1 score of only 80.25%) due to similar visual features among different tumor types.
 
-Chi tiet day du (danh gia tung lop, ma tran nham lan, so sanh optimizer
-SGD/Adam/AdamW, huong phat trien...) xem file bao cao goc
-`BaoCaoNCKH_PhanLoaiHinhAnh_KhoaDTQT_Lan2.docx`.
+For full details (class-by-class evaluation, confusion matrix, comparison of SGD/Adam/AdamW optimizers, future work, etc.), please refer to the original report file `BaoCaoNCKH_PhanLoaiHinhAnh_KhoaDTQT_Lan2.docx`.
 
-## Cau truc du an
+## Project Structure
 
 ```
 brain-tumor/
-├── configs/                 # Hyperparameter & duong dan (YAML), khong hardcode trong code
-│   ├── paths.yaml            # Duong dan data/weights, override bang bien moi truong
+├── configs/                 # Hyperparameters & paths (YAML), not hardcoded in the code
+│   ├── paths.yaml            # Paths to data/weights, overridable by environment variables
 │   └── cnn.yaml / vit.yaml / yolov8.yaml / yolov11.yaml
 ├── data/
-│   ├── raw/{images,labels}/  # Anh + nhan YOLO goc (1 class id / file)
-│   └── processed/{train,valid,test}/<lop>/  # ImageFolder dung chung ca 4 model
-├── weights/{cnn,vit,yolov8,yolov11}/  # Checkpoint da train (.pth / .pt)
-├── src/brain_tumor/          # Package chinh, khong phu thuoc Streamlit
+│   ├── raw/{images,labels}/  # Original images + YOLO labels (1 class id per file)
+│   └── processed/{train,valid,test}/<class>/  # Shared ImageFolder for all 4 models
+├── weights/{cnn,vit,yolov8,yolov11}/  # Trained checkpoints (.pth / .pt)
+├── src/brain_tumor/          # Main package, independent of Streamlit
 │   ├── config.py             # Load configs/paths.yaml -> Paths (dataclass)
-│   ├── constants.py          # Ten lop, phan mo rong anh
+│   ├── constants.py          # Class names, image extensions
 │   ├── data/                 # splitting.py, transforms.py
 │   ├── models/               # cnn.py, vit.py, yolo.py
 │   ├── training/             # train_cnn.py, train_vit.py, train_yolo.py
 │   ├── evaluation/           # evaluate_cnn.py, evaluate_vit.py, evaluate_yolo.py,
-│   │                         # compare.py (so sanh 4 mo hinh), reporting.py (bieu do)
-│   └── inference/            # predict.py (du doan 1 anh, dung cho GUI upload)
-├── app/streamlit_app.py       # Giao dien Streamlit, chi goi ham trong brain_tumor
+│   │                         # compare.py (model comparison), reporting.py (charts)
+│   └── inference/            # predict.py (predict single image, used for upload GUI)
+├── app/streamlit_app.py       # Streamlit UI, only calls functions in brain_tumor
 ├── scripts/                   # CLI: check_dataset.py, split_dataset.py, train.py,
 │                               # evaluate.py, download_weights.py, download_dataset.py
-└── tests/                     # pytest, khong can GPU/model nang de chay
+└── tests/                     # pytest, does not require GPU/heavy models to run
 ```
 
-### Vi sao xay dung lai theo cach nay
+### Why restructuring it this way?
 
-Code goc (`args.py`, `Library.py`, `GUI_version2.py`, `cnn.py`) tron logic
-tach dataset, train, evaluate va UI Streamlit vao chung 1-2 file, hardcode
-duong dan Windows (`D:\Dataset\...`) o mot ban va duong dan Colab
-(`/content/...`) o ban khac, dong thoi lap lai gan nguyen code chia
-dataset cho CNN va ViT. Ban xay dung lai nay:
+The original code (`args.py`, `Library.py`, `GUI_version2.py`, `cnn.py`) mixed the dataset splitting, training, evaluation, and Streamlit UI logic into one or two files. It hardcoded Windows paths (`D:\Dataset\...`) in one version and Colab paths (`/content/...`) in another, while duplicating almost the exact dataset splitting code for CNN and ViT. This restructured version:
 
-- Tach **config** (YAML) khoi **code** — doi may/may di chuyen du lieu chi can
-  sua `configs/paths.yaml` hoac dat bien moi truong `BRAIN_TUMOR_DATA_ROOT` /
-  `BRAIN_TUMOR_WEIGHTS_ROOT`.
-- Tach **logic** (`src/brain_tumor/`) khoi **giao dien** (`app/`) — cac ham
-  training/evaluation nhan `progress_callback` thay vi goi thang
-  `st.progress`, nen co the dung lai trong CLI (`scripts/`), test, hoac giao
-  dien khac.
-- Gop 2 ham chia dataset giong het nhau (`split_dataset_CNN` /
-  `split_dataset_ViT`) thanh mot `split_classification_dataset` dung chung
-  cho ca 4 model (YOLOv8/v11 cung dung ImageFolder classify thay vi detector).
-- Them **training that su** cho ca 4 mo hinh — ban goc chi co nut "Train"
-  hien text tinh, va panel upload-anh chi hien ket qua vi du co dinh; ca hai
-  gio goi dung model that (`src/brain_tumor/training/`,
-  `src/brain_tumor/inference/predict.py`).
+- Separates **config** (YAML) from **code** — changing machines or moving data only requires modifying `configs/paths.yaml` or setting the `BRAIN_TUMOR_DATA_ROOT` / `BRAIN_TUMOR_WEIGHTS_ROOT` environment variables.
+- Separates **logic** (`src/brain_tumor/`) from the **user interface** (`app/`) — training/evaluation functions accept a `progress_callback` instead of calling `st.progress` directly, making them reusable in the CLI (`scripts/`), tests, or other user interfaces.
+- Merges two identical dataset splitting functions (`split_dataset_CNN` / `split_dataset_ViT`) into a single `split_classification_dataset` shared by all 4 models (YOLOv8/v11 also use ImageFolder classification instead of detection).
+- Adds **actual training** for all 4 models — the original version only had a "Train" button displaying static text, and the image upload panel showed a fixed dummy result; both now invoke the actual model (`src/brain_tumor/training/`, `src/brain_tumor/inference/predict.py`).
 
-## Cai dat
+## Installation
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Windows
 pip install -r requirements.txt
-pip install -e .                  # cai package brain_tumor (src layout)
+pip install -e .                  # install the brain_tumor package (src layout)
 ```
 
-`ultralytics` yeu cau internet de tai checkpoint pretrained (`yolov8m-cls.pt`,
-`yolo11m-cls.pt`) o lan train dau tien neu chua co san trong thu muc lam viec.
+`ultralytics` requires an internet connection to download pretrained checkpoints (`yolov8m-cls.pt`, `yolo11m-cls.pt`) on the first training run if they are not already present in the working directory.
 
-## Du lieu va trong so mo hinh
+## Data and Model Weights
 
-1. Copy anh MRI goc vao `data/raw/images/` va nhan YOLO tuong ung (1 dong
-   `class_id x_center y_center w h`, class_id theo bang trong
-   `src/brain_tumor/constants.py`) vao `data/raw/labels/`.
-2. Kiem tra tinh toan ven:
+1. Copy the original MRI images into `data/raw/images/` and the corresponding YOLO labels (one line of `class_id x_center y_center w h`, with class_id following the table in `src/brain_tumor/constants.py`) into `data/raw/labels/`.
+2. Verify integrity:
    ```bash
    python scripts/check_dataset.py
    ```
-3. Chia dataset thanh 1 bo ImageFolder dung chung ca 4 model:
+3. Split the dataset into a single ImageFolder structure shared by all 4 models:
    ```bash
    python scripts/split_dataset.py --train 70 --val 15 --test 15
    ```
-4. Tai checkpoint da train san ve `weights/<model>/` bang script (xem muc
-   duoi), hoac tu train lai bang `scripts/train.py`.
+4. Download pre-trained checkpoints to `weights/<model>/` using the script (see section below), or train them from scratch using `scripts/train.py`.
 
-### Tai dataset tu Hugging Face Hub
+### Download Dataset from Hugging Face Hub
 
-Bo anh da chia san (`data/processed/{train,valid,test}`, ~12.7k anh, ~1.2GB)
-duoc luu tren repo dataset [Lomuto/brain-tumor-mri-dataset](https://huggingface.co/datasets/Lomuto/brain-tumor-mri-dataset):
+The pre-split image dataset (`data/processed/{train,valid,test}`, ~12.7k images, ~1.2GB) is stored in the dataset repository [Lomuto/brain-tumor-mri-dataset](https://huggingface.co/datasets/Lomuto/brain-tumor-mri-dataset):
 
 ```bash
 python scripts/download_dataset.py
 ```
 
-### Tai san model tu Hugging Face Hub
+### Download Pre-trained Models from Hugging Face Hub
 
-4 checkpoint da train duoc luu tren Hugging Face Hub (khong dua vao git vi
-qua nang, xem `.gitignore`):
+The 4 trained checkpoints are hosted on the Hugging Face Hub (not included in Git due to size limitations, see `.gitignore`):
 
-| Mo hinh | Repo |
+| Model | Repo |
 |---|---|
 | CNN | [Lomuto/cnn-brain-tumor-clasification](https://huggingface.co/Lomuto/cnn-brain-tumor-clasification) |
 | ViT | [Lomuto/vit-brain-tumor-classification](https://huggingface.co/Lomuto/vit-brain-tumor-classification) |
 | YOLOv8 | [Lomuto/yolov8-brain-tumor-classification](https://huggingface.co/Lomuto/yolov8-brain-tumor-classification) |
 | YOLOv11 | [Lomuto/yolov11-brain-tumor-classification](https://huggingface.co/Lomuto/yolov11-brain-tumor-classification) |
 
-Tai ca 4 model ve dung vi tri khai bao trong `configs/paths.yaml`:
+Download all 4 models to the locations specified in `configs/paths.yaml`:
 
 ```bash
 python scripts/download_weights.py
 ```
 
-Hoac chi tai mot model (`--model cnn|vit|yolov8|yolov11`), hay `--force` de
-tai lai neu file da co san.
+Or download only a specific model using `--model cnn|vit|yolov8|yolov11`, or use `--force` to re-download if the files already exist.
 
-Neu du lieu/weight nam o o dia hoac may khac, khong can sua code — chi dat:
+If the data/weights are located on another drive or machine, there is no need to modify the code — simply set:
 
 ```bash
 set BRAIN_TUMOR_DATA_ROOT=D:\Dataset       # Windows cmd
 set BRAIN_TUMOR_WEIGHTS_ROOT=D:\Dataset\Result
 ```
 
-## Huan luyen
+## Training
 
 ```bash
 python scripts/train.py --model cnn
@@ -187,30 +148,27 @@ python scripts/train.py --model yolov8
 python scripts/train.py --model yolov11
 ```
 
-Hyperparameter doc tu `configs/<model>.yaml`. Checkpoint tot nhat (theo val
-accuracy) duoc luu vao duong dan khai bao trong `configs/paths.yaml`.
+Hyperparameters are read from `configs/<model>.yaml`. The best checkpoint (based on validation accuracy) is saved to the path specified in `configs/paths.yaml`.
 
-## Danh gia
+## Evaluation
 
 ```bash
 python scripts/evaluate.py --model cnn --split val
 python scripts/evaluate.py --model yolov11 --split val
 ```
 
-## Giao dien Streamlit
+## Streamlit Interface
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-Cho phep: chon mo hinh, xem tham so, chia dataset, train, validate, test,
-so sanh ca 4 mo hinh (bang + bieu do), va phan loai/du doan mot anh tai len.
+Allows: selecting models, viewing parameters, splitting the dataset, training, validating, testing, comparing all 4 models (tables + charts), and classifying/predicting an uploaded image.
 
-## Kiem thu
+## Testing
 
 ```bash
 pytest
 ```
 
-`tests/` chi kiem tra logic chia dataset va load config bang du lieu gia
-lap trong thu muc tam — khong yeu cau torch/GPU/model that.
+`tests/` only tests the dataset splitting logic and config loading using mock data in a temporary directory — no PyTorch, GPU, or actual models are required.
